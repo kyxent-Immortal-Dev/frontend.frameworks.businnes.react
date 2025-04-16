@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import PrivateRoutes from './routes/PrivateRoutes';
+import DashboardLayout from './layout/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
@@ -14,7 +15,7 @@ function App() {
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
-    // Try to authenticate user on app load
+    // Try to authenticate user on app load using the cookie
     fetchUser();
   }, [fetchUser]);
 
@@ -33,7 +34,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
-        {/* Protected routes */}
+        {/* Protected routes with DashboardLayout */}
         <Route element={<PrivateRoutes />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/rent-cars" element={<RentCarsPage />} />

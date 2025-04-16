@@ -1,5 +1,6 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import DashboardLayout from '../layout/DashboardLayout';
 
 const PrivateRoutes = () => {
   const { user, isLoading } = useAuthStore();
@@ -18,8 +19,8 @@ const PrivateRoutes = () => {
     return <Navigate to="/login" replace />;
   }
   
-  // If authenticated, render the child routes
-  return <Outlet />;
+  // If authenticated, render the DashboardLayout with child routes
+  return <DashboardLayout />;
 };
 
 export default PrivateRoutes;

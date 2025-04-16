@@ -9,7 +9,7 @@ interface AuthState {
   setUser: (user: UserResponseInterface) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
   clearError: () => void;
 }
@@ -28,12 +28,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await axiosClient.post("/auth/login", { email, password });
       
-      // The token is set by the API in the cookies, so we don't need to manually set it
-      // We just need to update the user state
+      // The token is set as a cookie by the backend, no need to handle it here
       set({ 
         user: response.data.data.user,
         isLoading: false 
       });
+      
     } catch (error: any) {
       set({ 
         error: error.response?.data?.message || "Error during login", 
@@ -45,14 +45,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axiosClient.post("/users", { name, email, password });
+      // First create the user
+      const createResponse = await axiosClient.post("/users", { name, email, password });
       
-      // After registration, automatically log in
-      await axiosClient.post("/auth/login", { email, password });
+      // Then login with the new credentials
+      const loginResponse = await axiosClient.post("/auth/login", { email, password });
       
-      // Set the user
       set({ 
-        user: response.data.data,
+        user: loginResponse.data.data.user,
         isLoading: false 
       });
     } catch (error: any) {
@@ -66,13 +66,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
+      // This will clear the cookie on the server side
       await axiosClient.post("/auth/logout");
       
-      // The cookie is cleared by the API, so we just update our state
+      // Update local state
       set({ user: null, isLoading: false });
     } catch (error) {
       console.error("Error during logout:", error);
-      // Even if there's an error, we'll still clear the user from the state
+      // Even if there's an error, clear the user state
       set({ user: null, isLoading: false });
     }
   },
@@ -81,7 +82,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     
     try {
-      // Attempt to get the current user with the existing cookie
+      // This will use the cookie token for authentication
       const response = await axiosClient.get("/users/me");
       
       if (response.data && response.data.data) {
@@ -90,6 +91,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user: null, isLoading: false });
       }
     } catch (error) {
+      // If there's an error (like 401 unauthorized), the user is not logged in
       console.error("Error fetching user:", error);
       set({ user: null, isLoading: false });
     }
