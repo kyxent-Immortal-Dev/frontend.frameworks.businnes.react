@@ -15,7 +15,7 @@ export default function LoginComponent() {
       },[])
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // evita el reload de la página
+    e.preventDefault(); 
 
     const userData = {
       email: email,

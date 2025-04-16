@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import Swal from 'sweetalert2';
 
-const LoginPage = () => {
+const RegisterPage = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { login, user, error, clearError } = useAuthStore();
+  const { register, user, error, clearError } = useAuthStore();
   const navigate = useNavigate();
   
   // If user is already logged in, redirect to dashboard
@@ -18,12 +20,12 @@ const LoginPage = () => {
     }
   }, [user, navigate]);
   
-  // Show error if login failed
+  // Show error if registration failed
   useEffect(() => {
     if (error) {
       Swal.fire({
         icon: 'error',
-        title: 'Login Failed',
+        title: 'Registration Failed',
         text: error,
         confirmButtonColor: '#3085d6',
       });
@@ -34,11 +36,22 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    // Simple validation
+    if (!name || !email || !password || !confirmPassword) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please enter both email and password',
+        text: 'Please fill in all fields',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Password Mismatch',
+        text: 'Passwords do not match',
         confirmButtonColor: '#3085d6',
       });
       return;
@@ -47,7 +60,7 @@ const LoginPage = () => {
     setIsSubmitting(true);
     
     try {
-      await login(email, password);
+      await register(name, email, password);
     } finally {
       setIsSubmitting(false);
     }
@@ -58,10 +71,24 @@ const LoginPage = () => {
       <div className="card max-w-md mx-auto w-full bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title text-2xl font-bold text-center mb-6">Vehicle Rental System</h2>
-          <h3 className="text-xl font-semibold text-center mb-6">Login</h3>
+          <h3 className="text-xl font-semibold text-center mb-6">Create Account</h3>
           
           <form onSubmit={handleSubmit}>
             <div className="form-control">
+              <label className="label">
+                <span className="label-text">Full Name</span>
+              </label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                className="input input-bordered"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="form-control mt-4">
               <label className="label">
                 <span className="label-text">Email</span>
               </label>
@@ -89,13 +116,27 @@ const LoginPage = () => {
               />
             </div>
             
+            <div className="form-control mt-4">
+              <label className="label">
+                <span className="label-text">Confirm Password</span>
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="input input-bordered"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            
             <div className="form-control mt-6">
               <button 
                 type="submit" 
                 className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Logging in...' : 'Login'}
+                {isSubmitting ? 'Creating Account...' : 'Register'}
               </button>
             </div>
           </form>
@@ -103,9 +144,9 @@ const LoginPage = () => {
           <div className="divider">OR</div>
           
           <div className="text-center">
-            <p>Don't have an account?</p>
-            <Link to="/register" className="link link-primary">
-              Create Account
+            <p>Already have an account?</p>
+            <Link to="/login" className="link link-primary">
+              Login
             </Link>
           </div>
         </div>
@@ -114,4 +155,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
