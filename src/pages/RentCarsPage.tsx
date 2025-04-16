@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { 
+  Search, Car, Calendar, DollarSign, Filter, 
+  CheckCircle, Tag, Palette, 
+  PenTool
+} from 'lucide-react';
 
 interface Car {
   id: number;
@@ -120,6 +125,20 @@ const RentCarsPage = () => {
     }
   };
 
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'available':
+        return <CheckCircle size={14} />;
+      case 'rented':
+        return <Calendar size={14} />;
+      case 'maintenance':
+        return <PenTool size={14} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -130,38 +149,39 @@ const RentCarsPage = () => {
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="form-control flex-1">
-          <div className="input-group">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+              <Search size={18} />
+            </div>
             <input 
               type="text" 
               placeholder="Search by model, brand, or license plate..." 
-              className="input input-bordered w-full" 
+              className="input input-bordered w-full pl-10" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="btn btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
           </div>
         </div>
         
-        <select 
-          className="select select-bordered" 
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All Statuses</option>
-          <option value="available">Available</option>
-          <option value="rented">Rented</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
+        <div className="flex items-center gap-2 bg-base-200 px-4 py-2 rounded-lg">
+          <Filter size={18} className="text-gray-500" />
+          <select 
+            className="select select-bordered border-0 bg-transparent min-h-0 h-auto py-0" 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="available">Available</option>
+            <option value="rented">Rented</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
       </div>
       
       {/* Car Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCars.map(car => (
-          <div key={car.id} className="card bg-base-100 shadow-xl">
+          <div key={car.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
             <figure>
               <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-48 object-cover" />
             </figure>
@@ -169,34 +189,40 @@ const RentCarsPage = () => {
               <div className="flex justify-between items-start">
                 <h2 className="card-title">
                   {car.brand} {car.model}
-                  <div className={`badge ${getStatusBadgeColor(car.status)}`}>
+                  <div className={`badge ${getStatusBadgeColor(car.status)} gap-1`}>
+                    {getStatusIcon(car.status)}
                     {car.status.charAt(0).toUpperCase() + car.status.slice(1)}
                   </div>
                 </h2>
               </div>
               
-              <div className="text-lg font-bold text-primary">
+              <div className="text-lg font-bold text-primary flex items-center gap-1">
+                <DollarSign size={18} />
                 ${car.rate}/day
               </div>
               
               <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                <div>
-                  <span className="text-gray-500">Year:</span> {car.year}
+                <div className="flex items-center gap-1">
+                  <Calendar size={14} className="text-gray-500" />
+                  <span>{car.year}</span>
                 </div>
-                <div>
-                  <span className="text-gray-500">Color:</span> {car.color}
+                <div className="flex items-center gap-1">
+                  <Palette size={14} className="text-gray-500" />
+                  <span>{car.color}</span>
                 </div>
-                <div className="col-span-2">
-                  <span className="text-gray-500">License:</span> {car.licensePlate}
+                <div className="col-span-2 flex items-center gap-1">
+                  <Tag size={14} className="text-gray-500" />
+                  <span>License: {car.licensePlate}</span>
                 </div>
               </div>
               
               <div className="card-actions justify-end mt-4">
                 <button 
-                  className="btn btn-primary"
+                  className={`btn ${car.status === 'available' ? 'btn-primary' : 'btn-disabled'} gap-2`}
                   disabled={car.status !== 'available'}
                   onClick={() => handleRentCar(car.id)}
                 >
+                  <Car size={16} />
                   {car.status === 'available' ? 'Rent Now' : 'Unavailable'}
                 </button>
               </div>

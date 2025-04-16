@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { 
+  Calendar, User, Car, CreditCard, 
+  FileText, DollarSign, Clock, Save, 
+  ClipboardEdit, Mail, Phone, Tag 
+} from 'lucide-react'; // Added missing imports
 import Swal from 'sweetalert2';
 
 interface Vehicle {
@@ -14,6 +20,15 @@ interface Customer {
   name: string;
   email: string;
   phone: string;
+}
+
+interface RentalFormData {
+  customerId: string;
+  vehicleId: string;
+  startDate: string;
+  endDate: string;
+  paymentMethod: string;
+  notes: string;
 }
 
 const CreateRentalPage = () => {
@@ -32,88 +47,91 @@ const CreateRentalPage = () => {
     { id: 4, name: 'Sarah Williams', email: 'sarah.williams@example.com', phone: '555-789-1234' },
   ];
   
-  // Form state
-  const [formData, setFormData] = useState({
-    customerId: '',
-    vehicleId: '',
-    startDate: '',
-    endDate: '',
-    paymentMethod: 'credit_card',
-    notes: '',
-  });
-  
-  // Selected vehicle and customer
-  const selectedVehicle = formData.vehicleId ? vehicles.find(v => v.id === parseInt(formData.vehicleId)) : null;
-  const selectedCustomer = formData.customerId ? customers.find(c => c.id === parseInt(formData.customerId)) : null;
-  
-  // Calculate rental duration and total cost
-  const calculateRentalDays = () => {
-    if (!formData.startDate || !formData.endDate) return 0;
-    
-    const start = new Date(formData.startDate);
-    const end = new Date(formData.endDate);
-    
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-    
-    // Calculate the difference in days
-    const diffTime = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // Return at least 1 day for same-day rentals
-    return Math.max(1, diffDays);
-  };
-  
-  const rentalDays = calculateRentalDays();
-  const totalCost = selectedVehicle ? selectedVehicle.rate * rentalDays : 0;
-  
-  // Handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!formData.customerId || !formData.vehicleId || !formData.startDate || !formData.endDate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Information',
-        text: 'Please fill in all required fields',
-        confirmButtonColor: '#3085d6',
-      });
-      return;
-    }
-    
-    if (rentalDays <= 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Date Range',
-        text: 'End date must be after start date',
-        confirmButtonColor: '#3085d6',
-      });
-      return;
-    }
-    
-    // In a real application, this would make an API call to create the rental
-    Swal.fire({
-      icon: 'success',
-      title: 'Rental Created',
-      text: `Rental successfully created for ${selectedCustomer?.name}!`,
-      confirmButtonColor: '#3085d6',
-    });
-    
-    // Reset form
-    setFormData({
+  // Form setup using react-hook-form
+  const { 
+    control,
+    register, 
+    handleSubmit, 
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isValid }
+  } = useForm<RentalFormData>({
+    defaultValues: {
       customerId: '',
       vehicleId: '',
       startDate: '',
       endDate: '',
       paymentMethod: 'credit_card',
-      notes: '',
-    });
+      notes: ''
+    }
+  });
+  
+  // Watch form values for calculations
+  const watchedValues = watch();
+  
+  // State for rental calculations
+  const [rentalDays, setRentalDays] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+  
+  // Memoized selected customer and vehicle to avoid unnecessary recalculations
+  const selectedVehicle = useMemo(
+    () => vehicles.find(v => v.id === Number(watchedValues.vehicleId)),
+    [watchedValues.vehicleId]
+  );
+  const selectedCustomer = useMemo(
+    () => customers.find(c => c.id === Number(watchedValues.customerId)),
+    [watchedValues.customerId]
+  );
+  
+  // Calculate rental duration and cost
+  useEffect(() => {
+    if (watchedValues.startDate && watchedValues.endDate) {
+      const start = new Date(watchedValues.startDate);
+      const end = new Date(watchedValues.endDate);
+      
+      if (start instanceof Date && end instanceof Date && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        const diffTime = Math.max(end.getTime() - start.getTime(), 0); // Ensure non-negative
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const days = Math.max(1, diffDays); // Ensure at least 1 day
+        setRentalDays(days);
+        
+        if (selectedVehicle) {
+          setTotalCost(selectedVehicle.rate * days);
+        } else {
+          setTotalCost(0); // Reset cost if no vehicle selected
+        }
+      } else {
+        setRentalDays(0);
+        setTotalCost(0);
+      }
+    } else {
+      setRentalDays(0);
+      setTotalCost(0);
+    }
+  }, [watchedValues.startDate, watchedValues.endDate, selectedVehicle]);
+  
+  // Handle form submission with error handling
+  const onSubmit = async (data: RentalFormData) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock async operation
+      Swal.fire({
+        icon: 'success',
+        title: 'Rental Created',
+        text: `Rental successfully created for ${selectedCustomer?.name || 'customer'}!`,
+        confirmButtonColor: '#3085d6',
+      });
+      
+      console.log("Form data submitted:", data);
+      reset();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to create rental. Please try again.',
+        confirmButtonColor: '#d33',
+      });
+    }
   };
 
   return (
@@ -128,122 +146,203 @@ const CreateRentalPage = () => {
         <div className="lg:col-span-2">
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
-              <h2 className="card-title text-xl mb-4">Rental Details</h2>
+              <h2 className="card-title text-xl mb-4 flex items-center gap-2">
+                <ClipboardEdit size={20} /> Rental Details
+              </h2>
               
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit(onSubmit)} aria-label="Create Rental Form">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Customer Selection */}
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Customer*</span>
+                    <label className="label" htmlFor="customerId">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <User size={16} /> Customer*
+                      </span>
                     </label>
-                    <select 
-                      className="select select-bordered w-full" 
+                    <Controller
                       name="customerId"
-                      value={formData.customerId}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Customer</option>
-                      {customers.map(customer => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
+                      control={control}
+                      rules={{ required: "Please select a customer" }}
+                      render={({ field }) => (
+                        <select 
+                          id="customerId"
+                          className={`select select-bordered w-full ${errors.customerId ? 'select-error' : ''}`}
+                          aria-invalid={!!errors.customerId}
+                          {...field}
+                        >
+                          <option value="">Select Customer</option>
+                          {customers.map(customer => (
+                            <option key={customer.id} value={customer.id}>
+                              {customer.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                    {errors.customerId && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">{errors.customerId.message}</span>
+                      </label>
+                    )}
                   </div>
                   
                   {/* Vehicle Selection */}
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Vehicle*</span>
+                    <label className="label" htmlFor="vehicleId">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <Car size={16} /> Vehicle*
+                      </span>
                     </label>
-                    <select 
-                      className="select select-bordered w-full" 
+                    <Controller
                       name="vehicleId"
-                      value={formData.vehicleId}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Vehicle</option>
-                      {vehicles.map(vehicle => (
-                        <option key={vehicle.id} value={vehicle.id}>
-                          {vehicle.brand} {vehicle.model} ({vehicle.licensePlate})
-                        </option>
-                      ))}
-                    </select>
+                      control={control}
+                      rules={{ required: "Please select a vehicle" }}
+                      render={({ field }) => (
+                        <select 
+                          id="vehicleId"
+                          className={`select select-bordered w-full ${errors.vehicleId ? 'select-error' : ''}`}
+                          aria-invalid={!!errors.vehicleId}
+                          {...field}
+                        >
+                          <option value="">Select Vehicle</option>
+                          {vehicles.map(vehicle => (
+                            <option key={vehicle.id} value={vehicle.id}>
+                              {vehicle.brand} {vehicle.model} ({vehicle.licensePlate})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                    {errors.vehicleId && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">{errors.vehicleId.message}</span>
+                      </label>
+                    )}
                   </div>
                   
                   {/* Start Date */}
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Start Date*</span>
+                    <label className="label" htmlFor="startDate">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <Calendar size={16} /> Start Date*
+                      </span>
                     </label>
-                    <input 
-                      type="date" 
-                      className="input input-bordered" 
-                      name="startDate"
-                      value={formData.startDate}
-                      onChange={handleChange}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <Calendar size={16} />
+                      </div>
+                      <input 
+                        id="startDate"
+                        type="date" 
+                        className={`input input-bordered w-full pl-10 ${errors.startDate ? 'input-error' : ''}`}
+                        min={new Date().toISOString().split('T')[0]}
+                        aria-invalid={!!errors.startDate}
+                        {...register("startDate", { 
+                          required: "Start date is required" 
+                        })}
+                      />
+                    </div>
+                    {errors.startDate && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">{errors.startDate.message}</span>
+                      </label>
+                    )}
                   </div>
                   
                   {/* End Date */}
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">End Date*</span>
+                    <label className="label" htmlFor="endDate">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <Calendar size={16} /> End Date*
+                      </span>
                     </label>
-                    <input 
-                      type="date" 
-                      className="input input-bordered" 
-                      name="endDate"
-                      value={formData.endDate}
-                      onChange={handleChange}
-                      min={formData.startDate || new Date().toISOString().split('T')[0]}
-                      required
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <Calendar size={16} />
+                      </div>
+                      <input 
+                        id="endDate"
+                        type="date" 
+                        className={`input input-bordered w-full pl-10 ${errors.endDate ? 'input-error' : ''}`}
+                        min={watchedValues.startDate || new Date().toISOString().split('T')[0]}
+                        aria-invalid={!!errors.endDate}
+                        {...register("endDate", { 
+                          required: "End date is required",
+                          validate: value => {
+                            if (!watchedValues.startDate) return true;
+                            const start = new Date(watchedValues.startDate);
+                            const end = new Date(value);
+                            return end >= start || "End date must be on or after start date";
+                          }
+                        })}
+                      />
+                    </div>
+                    {errors.endDate && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">{errors.endDate.message}</span>
+                      </label>
+                    )}
                   </div>
                   
                   {/* Payment Method */}
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Payment Method*</span>
+                    <label className="label" htmlFor="paymentMethod">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <CreditCard size={16} /> Payment Method*
+                      </span>
                     </label>
-                    <select 
-                      className="select select-bordered w-full" 
-                      name="paymentMethod"
-                      value={formData.paymentMethod}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="credit_card">Credit Card</option>
-                      <option value="debit_card">Debit Card</option>
-                      <option value="cash">Cash</option>
-                      <option value="bank_transfer">Bank Transfer</option>
-                    </select>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <CreditCard size={16} />
+                      </div>
+                      <select 
+                        id="paymentMethod"
+                        className="select select-bordered w-full pl-10"
+                        {...register("paymentMethod")}
+                      >
+                        <option value="credit_card">Credit Card</option>
+                        <option value="debit_card">Debit Card</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                      </select>
+                    </div>
                   </div>
                   
                   {/* Notes */}
                   <div className="form-control md:col-span-2">
-                    <label className="label">
-                      <span className="label-text">Notes</span>
+                    <label className="label" htmlFor="notes">
+                      <span className="label-text font-medium flex items-center gap-2">
+                        <FileText size={16} /> Notes
+                      </span>
                     </label>
                     <textarea 
+                      id="notes"
                       className="textarea textarea-bordered h-32" 
                       placeholder="Additional notes about the rental"
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleChange}
+                      aria-describedby="notes-description"
+                      {...register("notes")}
                     ></textarea>
+                    <span id="notes-description" className="sr-only">
+                      Optional field for additional rental notes
+                    </span>
                   </div>
                 </div>
                 
                 {/* Submit Button */}
                 <div className="mt-6">
-                  <button type="submit" className="btn btn-primary w-full">
-                    Create Rental
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary w-full"
+                    disabled={isSubmitting || !isValid}
+                    aria-label="Create Rental"
+                  >
+                    {isSubmitting ? (
+                      'Creating...'
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Save size={18} /> Create Rental
+                      </span>
+                    )}
                   </button>
                 </div>
               </form>
@@ -254,38 +353,62 @@ const CreateRentalPage = () => {
         {/* Summary Panel */}
         <div className="card bg-base-100 shadow-xl h-fit sticky top-6">
           <div className="card-body">
-            <h2 className="card-title text-xl mb-4">Rental Summary</h2>
+            <h2 className="card-title text-xl mb-4 flex items-center gap-2">
+              <FileText size={20} /> Rental Summary
+            </h2>
             
             {(selectedCustomer || selectedVehicle || rentalDays > 0) ? (
               <div className="space-y-6">
                 {/* Customer Info */}
                 {selectedCustomer && (
                   <div>
-                    <h3 className="font-medium text-gray-500">Customer</h3>
+                    <h3 className="font-medium text-gray-500 flex items-center gap-2">
+                      <User size={16} /> Customer
+                    </h3>
                     <p className="font-bold text-lg">{selectedCustomer.name}</p>
-                    <p>{selectedCustomer.email}</p>
-                    <p>{selectedCustomer.phone}</p>
+                    <p className="flex items-center gap-1">
+                      <Mail size={14} className="text-gray-500" aria-hidden="true" /> 
+                      {selectedCustomer.email}
+                    </p>
+                    <p className="flex items-center gap-1">
+                      <Phone size={14} className="text-gray-500" aria-hidden="true" /> 
+                      {selectedCustomer.phone}
+                    </p>
                   </div>
                 )}
                 
                 {/* Vehicle Info */}
                 {selectedVehicle && (
                   <div>
-                    <h3 className="font-medium text-gray-500">Vehicle</h3>
+                    <h3 className="font-medium text-gray-500 flex items-center gap-2">
+                      <Car size={16} /> Vehicle
+                    </h3>
                     <p className="font-bold text-lg">{selectedVehicle.brand} {selectedVehicle.model}</p>
-                    <p>License: {selectedVehicle.licensePlate}</p>
-                    <p>Rate: ${selectedVehicle.rate}/day</p>
+                    <p className="flex items-center gap-1">
+                      <Tag size={14} className="text-gray-500" aria-hidden="true" /> 
+                      License: {selectedVehicle.licensePlate}
+                    </p>
+                    <p className="flex items-center gap-1">
+                      <DollarSign size={14} className="text-gray-500" aria-hidden="true" /> 
+                      Rate: ${selectedVehicle.rate}/day
+                    </p>
                   </div>
                 )}
                 
                 {/* Rental Period */}
-                {rentalDays > 0 && (
+                {rentalDays > 0 && watchedValues.startDate && watchedValues.endDate && (
                   <div>
-                    <h3 className="font-medium text-gray-500">Rental Period</h3>
-                    <p>
-                      {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
+                    <h3 className="font-medium text-gray-500 flex items-center gap-2">
+                      <Clock size={16} /> Rental Period
+                    </h3>
+                    <p className="flex items-center gap-1">
+                      <Calendar size={14} className="text-gray-500" aria-hidden="true" />
+                      {new Date(watchedValues.startDate).toLocaleDateString()} to {new Date(watchedValues.endDate).toLocaleDateString()}
                     </p>
-                    <p>{rentalDays} day{rentalDays !== 1 ? 's' : ''}</p>
+                    <p className="flex items-center gap-1">
+                      <Clock size={14} className="text-gray-500" aria-hidden="true" />
+                      {rentalDays} day{rentalDays !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 )}
                 
@@ -300,9 +423,11 @@ const CreateRentalPage = () => {
                       <span>Number of Days:</span>
                       <span>{rentalDays}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-lg mt-2">
-                      <span>Total Cost:</span>
-                      <span>${totalCost}</span>
+                    <div className="flex justify-between font-bold text-lg mt-3 items-center">
+                      <span className="flex items-center gap-1">
+                        <DollarSign size={16} aria-hidden="true" /> Total Cost:
+                      </span>
+                      <span>${totalCost.toFixed(2)}</span> {/* Format to 2 decimal places */}
                     </div>
                   </div>
                 )}

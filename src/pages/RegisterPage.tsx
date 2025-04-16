@@ -18,7 +18,7 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-base-200 flex items-center">
       <div className="card max-w-md mx-auto w-full bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl font-bold text-center mb-6">Vehicle Rental System</h2>
+
           <h3 className="text-xl font-semibold text-center mb-6">Create Account</h3>
           
           <RegisterComponent />

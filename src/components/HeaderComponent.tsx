@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { Menu, Search, LogOut, User, Settings } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
@@ -33,9 +34,7 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     <div className="navbar bg-base-100 shadow-md z-20">
       <div className="flex-none lg:hidden">
         <button onClick={toggleSidebar} className="btn btn-square btn-ghost">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-6 h-6 stroke-current">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
+          <Menu size={24} />
         </button>
       </div>
       
@@ -48,9 +47,7 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           <div className="input-group">
             <input type="text" placeholder="Search..." className="input input-bordered input-sm" />
             <button className="btn btn-square btn-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <Search size={18} />
             </button>
           </div>
         </div>
@@ -64,9 +61,21 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           
           {dropdownVisible && (
             <ul className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-              <li><a className="justify-between">Profile</a></li>
-              <li><a>Settings</a></li>
-              <li><a onClick={handleLogout}>Logout</a></li>
+              <li>
+                <a className="flex items-center gap-2">
+                  <User size={16} /> Profile
+                </a>
+              </li>
+              <li>
+                <a className="flex items-center gap-2">
+                  <Settings size={16} /> Settings
+                </a>
+              </li>
+              <li>
+                <a onClick={handleLogout} className="flex items-center gap-2">
+                  <LogOut size={16} /> Logout
+                </a>
+              </li>
             </ul>
           )}
         </div>
