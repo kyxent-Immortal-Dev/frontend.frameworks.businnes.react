@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Menu, Search, LogOut, User, Settings } from 'lucide-react';
@@ -8,7 +8,22 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownVisible(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleLogout = async () => {
     Swal.fire({
       title: 'Logout',
@@ -25,7 +40,7 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       }
     });
   };
-
+  
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
@@ -52,31 +67,40 @@ const HeaderComponent = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           </div>
         </div>
         
-        <div className="dropdown dropdown-end">
-          <div tabIndex={0} role="button" onClick={toggleDropdown} className="btn btn-ghost btn-circle avatar">
+        <div className="relative" ref={dropdownRef}>
+          <button 
+            onClick={toggleDropdown} 
+            className="btn btn-ghost btn-circle avatar"
+          >
             <div className="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
               <span className="text-lg">{user?.name?.charAt(0)}</span>
             </div>
-          </div>
+          </button>
           
           {dropdownVisible && (
-            <ul className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-              <li>
-                <a className="flex items-center gap-2">
+            <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-base-100 ring-1 ring-black ring-opacity-5 z-50">
+              <div className="py-1" role="menu" aria-orientation="vertical">
+                <button 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-base-200 flex items-center gap-2"
+                  role="menuitem"
+                >
                   <User size={16} /> Profile
-                </a>
-              </li>
-              <li>
-                <a className="flex items-center gap-2">
+                </button>
+                <button 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-base-200 flex items-center gap-2"
+                  role="menuitem"
+                >
                   <Settings size={16} /> Settings
-                </a>
-              </li>
-              <li>
-                <a onClick={handleLogout} className="flex items-center gap-2">
+                </button>
+                <button 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-base-200 flex items-center gap-2"
+                  role="menuitem"
+                  onClick={handleLogout}
+                >
                   <LogOut size={16} /> Logout
-                </a>
-              </li>
-            </ul>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

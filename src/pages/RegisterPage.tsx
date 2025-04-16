@@ -7,7 +7,6 @@ const RegisterPage = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   
-  // If user is already logged in, redirect to dashboard
   useEffect(() => {
     if (user) {
       navigate('/dashboard');

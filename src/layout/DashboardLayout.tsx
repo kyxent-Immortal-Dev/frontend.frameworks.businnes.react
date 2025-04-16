@@ -14,7 +14,7 @@ const DashboardLayout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
   
-  // If the user is not authenticated at any point, redirect to login
+
   if (!user) {
     navigate('/login');
     return null;
@@ -30,7 +30,6 @@ const DashboardLayout = () => {
         onChange={toggleSidebar}
       />
       
-      {/* Sidebar */}
       <div className="drawer-side z-20">
         <label htmlFor="drawer" aria-label="close sidebar" className="drawer-overlay"></label>
         <div className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -38,16 +37,13 @@ const DashboardLayout = () => {
         </div>
       </div>
       
-      {/* Page content */}
       <div className="drawer-content flex flex-col">
         <HeaderComponent toggleSidebar={toggleSidebar} />
         
-        {/* Main content */}
         <main className="flex-1 p-6 overflow-auto">
           <Outlet />
         </main>
         
-        {/* Footer */}
         <FooterComponent />
       </div>
     </div>

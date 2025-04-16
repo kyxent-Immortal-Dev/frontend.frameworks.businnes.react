@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { 
   Car, Users, DollarSign, Clock, 
-  PlusCircle, UserPlus, PlusSquare, FileText,
+  UserPlus, PlusSquare, FileText,
   Activity
 } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Helper function to format date
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'long',
@@ -28,7 +28,7 @@ const Dashboard = () => {
     }).format(date);
   };
   
-  // Helper function to format time
+
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
@@ -37,7 +37,7 @@ const Dashboard = () => {
     }).format(date);
   };
   
-  // Sample stats for dashboard
+
   const stats = [
     { 
       name: 'Available Vehicles', 
@@ -65,7 +65,7 @@ const Dashboard = () => {
     },
   ];
   
-  // Sample recent activities
+
   const recentActivities = [
     { user: 'John Doe', action: 'rented a Toyota Camry', time: '2 hours ago' },
     { user: 'Jane Smith', action: 'returned a Honda Civic', time: '5 hours ago' },
@@ -111,7 +111,7 @@ const Dashboard = () => {
         ))}
       </div>
       
-      {/* Recent Activities */}
+
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title text-xl mb-4 flex items-center gap-2">
@@ -142,7 +142,7 @@ const Dashboard = () => {
         </div>
       </div>
       
-      {/* Quick Actions */}
+
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title text-xl mb-4 flex items-center gap-2">

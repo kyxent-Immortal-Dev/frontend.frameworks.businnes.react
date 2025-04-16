@@ -12,7 +12,7 @@ interface Car {
   year: number;
   licensePlate: string;
   color: string;
-  rate: number;  // Daily rate
+  rate: number;  
   status: 'available' | 'rented' | 'maintenance';
   imageUrl: string;
 }
@@ -91,7 +91,7 @@ const RentCarsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  // Filter cars based on search term and status
+
   const filteredCars = cars.filter(car => {
     const matchesSearch = 
       car.model.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -103,15 +103,15 @@ const RentCarsPage = () => {
     return matchesSearch && matchesStatus;
   });
   
-  // Function to handle rent button click
+
   const handleRentCar = (carId: number) => {
-    // In a real app, this would make an API call
+
     setCars(cars.map(car => 
       car.id === carId ? { ...car, status: 'rented' } : car
     ));
   };
   
-  // Get status badge color
+
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'available':
@@ -125,7 +125,7 @@ const RentCarsPage = () => {
     }
   };
 
-  // Get status icon
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'available':
@@ -146,7 +146,7 @@ const RentCarsPage = () => {
         <p className="text-gray-500">Browse and rent vehicles from our fleet</p>
       </div>
       
-      {/* Search and Filters */}
+
       <div className="flex flex-col md:flex-row gap-4">
         <div className="form-control flex-1">
           <div className="relative">
@@ -178,7 +178,7 @@ const RentCarsPage = () => {
         </div>
       </div>
       
-      {/* Car Grid */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCars.map(car => (
           <div key={car.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
@@ -231,7 +231,7 @@ const RentCarsPage = () => {
         ))}
       </div>
       
-      {/* Show message if no cars match the filter */}
+
       {filteredCars.length === 0 && (
         <div className="text-center py-8">
           <div className="text-4xl mb-4">🔍</div>

@@ -12,7 +12,7 @@ const SidebarComponent = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* App Name and Logo */}
+     
       <div className="flex items-center gap-3 px-4 py-4">
         <div className="avatar placeholder">
           <div className="bg-primary text-primary-content rounded-full w-12 flex items-center justify-center">
@@ -25,16 +25,14 @@ const SidebarComponent = () => {
         </div>
       </div>
       
-      {/* Divider */}
+
       <div className="divider mx-4 my-2"></div>
       
-      {/* User Info */}
       <div className="px-4 py-2 mb-6">
         <p className="font-medium text-lg">{user?.name}</p>
         <p className="text-sm opacity-70">{user?.email}</p>
       </div>
       
-      {/* Navigation Links */}
       <ul className="space-y-2 px-2">
         <li>
           <Link 

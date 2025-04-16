@@ -22,12 +22,10 @@ const ViewUsersPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponseInterface | null>(null);
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Show error message if any
   useEffect(() => {
     if (error) {
       Swal.fire({
@@ -40,7 +38,6 @@ const ViewUsersPage = () => {
     }
   }, [error, clearError]);
 
-  // Filter users based on search term, role, and status
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,23 +48,20 @@ const ViewUsersPage = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Open modal for adding a new user
   const handleAddUser = () => {
     setIsAddModalOpen(true);
   };
 
-  // Open modal for editing a user
   const handleEditUser = (user: UserResponseInterface) => {
     setEditingUser(user);
     setIsEditModalOpen(true);
   };
 
-  // Handle user activation/deactivation (simulated for now)
   const toggleUserStatus = (userId: number) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    const userStatus = "active"; // In a real app, this would come from the user object
+    const userStatus = "active"; 
     const newStatus = userStatus === "active" ? "inactive" : "active";
     const actionText = newStatus === "active" ? "activate" : "deactivate";
 
@@ -91,7 +85,7 @@ const ViewUsersPage = () => {
     });
   };
 
-  // Handle user deletion
+
   const handleDeleteUser = (userId: number) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
@@ -123,7 +117,7 @@ const ViewUsersPage = () => {
         <p className="text-gray-500">View and manage system users</p>
       </div>
 
-      {/* Search and Filters */}
+
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="form-control flex-1">
           <div className="input-group">
@@ -165,14 +159,14 @@ const ViewUsersPage = () => {
         </button>
       </div>
 
-      {/* Loading indicator */}
+
       {isLoading && (
         <div className="flex justify-center py-8">
           <div className="loading loading-spinner loading-lg text-primary"></div>
         </div>
       )}
 
-      {/* Users Table */}
+
       {!isLoading && (
         <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
           <table className="table w-full">
@@ -234,7 +228,7 @@ const ViewUsersPage = () => {
         </div>
       )}
 
-      {/* Message when no users match filters */}
+
       {!isLoading && filteredUsers.length === 0 && (
         <div className="text-center py-8">
           <div className="text-4xl mb-4">🔍</div>
@@ -245,7 +239,7 @@ const ViewUsersPage = () => {
         </div>
       )}
 
-      {/* Modals */}
+
       <AddUserModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

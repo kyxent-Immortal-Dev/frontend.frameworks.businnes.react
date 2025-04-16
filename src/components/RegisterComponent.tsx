@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Mail, Lock, User, UserPlus } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { AxiosError } from 'axios';
 
 interface RegisterFormData {
   name: string;
@@ -24,7 +25,7 @@ const RegisterComponent = () => {
     formState: { errors } 
   } = useForm<RegisterFormData>();
 
-  // Watch the password field to use in validation
+
   const password = watch('password');
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -32,16 +33,24 @@ const RegisterComponent = () => {
     
     try {
       await registerUser(data.name, data.email, data.password);
-      // If successful, the user will be registered and logged in
-      // The PrivateRoutes component will handle the redirect
       navigate('/dashboard');
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: error.response?.data?.message || 'Error during registration',
-        confirmButtonColor: '#3085d6',
-      });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: error.response?.data?.message || 'Error during registration',
+          confirmButtonColor: '#3085d6',
+        });
+      } else {
+        // Handle non-Axios errors
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: 'An unexpected error occurred',
+          confirmButtonColor: '#3085d6',
+        });
+      }
       clearError();
     } finally {
       setIsSubmitting(false);

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { AxiosError } from 'axios';
 
 interface LoginFormData {
   email: string;
@@ -15,10 +16,10 @@ const LoginComponent = () => {
   const { login, clearError } = useAuthStore();
   const navigate = useNavigate();
 
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors } 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
   } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
@@ -26,16 +27,26 @@ const LoginComponent = () => {
     
     try {
       await login(data.email, data.password);
-      // If successful, the user state will be updated in the auth store
-      // and the PrivateRoutes component will handle the redirect
+
       navigate('/dashboard');
-    } catch (error: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Login Failed',
-        text: error.response?.data?.message || 'Invalid credentials',
-        confirmButtonColor: '#3085d6',
-      });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        const errorMessage = error.response?.data?.message || 'Invalid credentials';
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: errorMessage,
+          confirmButtonColor: '#3085d6',
+        });
+      } else {
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: 'An unexpected error occurred',
+          confirmButtonColor: '#3085d6',
+        });
+      }
       clearError();
     } finally {
       setIsSubmitting(false);

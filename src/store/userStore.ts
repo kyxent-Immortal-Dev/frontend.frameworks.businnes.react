@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { UserResponseInterface } from "../interfaces/userInterface";
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from "../services/api/users/userService";
 
-// Define the type for update data to avoid `any`
+
 interface UpdateUserData {
   name?: string;
   email?: string;
@@ -15,7 +15,7 @@ interface UserState {
   isLoading: boolean;
   error: string | null;
 
-  // Actions
+
   fetchUsers: () => Promise<void>;
   fetchUserById: (id: number) => Promise<void>;
   addUser: (name: string, email: string, password: string) => Promise<void>;
@@ -79,15 +79,15 @@ export const useUserStore = create<UserState>((set) => ({
   updateUserData: async (id: number, userData: Partial<UserResponseInterface>) => {
     set({ isLoading: true, error: null });
     try {
-      // Create update data with specific type
+
       const updateData: UpdateUserData = { ...userData };
-      delete (updateData as any).id; // Remove ID from payload
-      delete (updateData as any).createdAt; // Remove createdAt from payload
-      delete (updateData as any).updatedAt; // Remove updatedAt from payload
+      delete (updateData as any).id; 
+      delete (updateData as any).createdAt; 
+      delete (updateData as any).updatedAt; 
 
       const updatedUser = await updateUser(id, updateData);
 
-      // Update the user in the users array
+
       set((state) => ({
         users: state.users.map((user) =>
           user.id === id ? updatedUser : user

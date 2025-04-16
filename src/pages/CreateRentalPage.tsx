@@ -4,8 +4,9 @@ import {
   Calendar, User, Car, CreditCard, 
   FileText, DollarSign, Clock, Save, 
   ClipboardEdit, Mail, Phone, Tag 
-} from 'lucide-react'; // Added missing imports
+} from 'lucide-react';
 import Swal from 'sweetalert2';
+import { AxiosError } from 'axios';
 
 interface Vehicle {
   id: number;
@@ -32,7 +33,7 @@ interface RentalFormData {
 }
 
 const CreateRentalPage = () => {
-  // Sample vehicles and customers
+
   const vehicles: Vehicle[] = [
     { id: 1, model: 'Camry', brand: 'Toyota', licensePlate: 'ABC-123', rate: 45 },
     { id: 2, model: 'Civic', brand: 'Honda', licensePlate: 'XYZ-789', rate: 40 },
@@ -47,7 +48,6 @@ const CreateRentalPage = () => {
     { id: 4, name: 'Sarah Williams', email: 'sarah.williams@example.com', phone: '555-789-1234' },
   ];
   
-  // Form setup using react-hook-form
   const { 
     control,
     register, 
@@ -66,14 +66,12 @@ const CreateRentalPage = () => {
     }
   });
   
-  // Watch form values for calculations
+
   const watchedValues = watch();
   
-  // State for rental calculations
   const [rentalDays, setRentalDays] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   
-  // Memoized selected customer and vehicle to avoid unnecessary recalculations
   const selectedVehicle = useMemo(
     () => vehicles.find(v => v.id === Number(watchedValues.vehicleId)),
     [watchedValues.vehicleId]
@@ -83,22 +81,21 @@ const CreateRentalPage = () => {
     [watchedValues.customerId]
   );
   
-  // Calculate rental duration and cost
   useEffect(() => {
     if (watchedValues.startDate && watchedValues.endDate) {
       const start = new Date(watchedValues.startDate);
       const end = new Date(watchedValues.endDate);
       
       if (start instanceof Date && end instanceof Date && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        const diffTime = Math.max(end.getTime() - start.getTime(), 0); // Ensure non-negative
+        const diffTime = Math.max(end.getTime() - start.getTime(), 0); 
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const days = Math.max(1, diffDays); // Ensure at least 1 day
+        const days = Math.max(1, diffDays); 
         setRentalDays(days);
         
         if (selectedVehicle) {
           setTotalCost(selectedVehicle.rate * days);
         } else {
-          setTotalCost(0); // Reset cost if no vehicle selected
+          setTotalCost(0);
         }
       } else {
         setRentalDays(0);
@@ -110,11 +107,11 @@ const CreateRentalPage = () => {
     }
   }, [watchedValues.startDate, watchedValues.endDate, selectedVehicle]);
   
-  // Handle form submission with error handling
+
   const onSubmit = async (data: RentalFormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock async operation
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
       Swal.fire({
         icon: 'success',
         title: 'Rental Created',
@@ -125,6 +122,7 @@ const CreateRentalPage = () => {
       console.log("Form data submitted:", data);
       reset();
     } catch (error) {
+        if(error instanceof AxiosError)
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -152,7 +150,7 @@ const CreateRentalPage = () => {
               
               <form onSubmit={handleSubmit(onSubmit)} aria-label="Create Rental Form">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Customer Selection */}
+                
                   <div className="form-control">
                     <label className="label" htmlFor="customerId">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -186,7 +184,7 @@ const CreateRentalPage = () => {
                     )}
                   </div>
                   
-                  {/* Vehicle Selection */}
+
                   <div className="form-control">
                     <label className="label" htmlFor="vehicleId">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -220,7 +218,7 @@ const CreateRentalPage = () => {
                     )}
                   </div>
                   
-                  {/* Start Date */}
+
                   <div className="form-control">
                     <label className="label" htmlFor="startDate">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -249,7 +247,7 @@ const CreateRentalPage = () => {
                     )}
                   </div>
                   
-                  {/* End Date */}
+
                   <div className="form-control">
                     <label className="label" htmlFor="endDate">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -284,7 +282,7 @@ const CreateRentalPage = () => {
                     )}
                   </div>
                   
-                  {/* Payment Method */}
+
                   <div className="form-control">
                     <label className="label" htmlFor="paymentMethod">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -308,7 +306,7 @@ const CreateRentalPage = () => {
                     </div>
                   </div>
                   
-                  {/* Notes */}
+
                   <div className="form-control md:col-span-2">
                     <label className="label" htmlFor="notes">
                       <span className="label-text font-medium flex items-center gap-2">
@@ -328,7 +326,7 @@ const CreateRentalPage = () => {
                   </div>
                 </div>
                 
-                {/* Submit Button */}
+
                 <div className="mt-6">
                   <button 
                     type="submit" 
@@ -350,7 +348,7 @@ const CreateRentalPage = () => {
           </div>
         </div>
         
-        {/* Summary Panel */}
+
         <div className="card bg-base-100 shadow-xl h-fit sticky top-6">
           <div className="card-body">
             <h2 className="card-title text-xl mb-4 flex items-center gap-2">
@@ -377,7 +375,7 @@ const CreateRentalPage = () => {
                   </div>
                 )}
                 
-                {/* Vehicle Info */}
+
                 {selectedVehicle && (
                   <div>
                     <h3 className="font-medium text-gray-500 flex items-center gap-2">
@@ -395,7 +393,7 @@ const CreateRentalPage = () => {
                   </div>
                 )}
                 
-                {/* Rental Period */}
+
                 {rentalDays > 0 && watchedValues.startDate && watchedValues.endDate && (
                   <div>
                     <h3 className="font-medium text-gray-500 flex items-center gap-2">
@@ -412,7 +410,7 @@ const CreateRentalPage = () => {
                   </div>
                 )}
                 
-                {/* Calculated Cost */}
+
                 {selectedVehicle && rentalDays > 0 && (
                   <div className="pt-4 border-t">
                     <div className="flex justify-between">
@@ -427,7 +425,7 @@ const CreateRentalPage = () => {
                       <span className="flex items-center gap-1">
                         <DollarSign size={16} aria-hidden="true" /> Total Cost:
                       </span>
-                      <span>${totalCost.toFixed(2)}</span> {/* Format to 2 decimal places */}
+                      <span>${totalCost.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
